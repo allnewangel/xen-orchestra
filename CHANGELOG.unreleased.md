@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [SDN Controller] Allow private network creation on bond and VLAN (PR [#4682](https://github.com/vatesfr/xen-orchestra/pull/4682))
+- [Smart backup] Ability to add new tags [#2810](https://github.com/vatesfr/xen-orchestra/issues/2810) (PR [#4648](https://github.com/vatesfr/xen-orchestra/pull/4648))
 
 ### Bug fixes
 
