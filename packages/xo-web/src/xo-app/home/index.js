@@ -93,7 +93,8 @@ import VmItem from './vm-item'
 import TemplateItem from './template-item'
 import SrItem from './sr-item'
 
-const ITEMS_PER_PAGE = 20
+const DEFAULT_ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = [20, 50, 100]
 
 const OPTIONS = {
   host: {
@@ -448,6 +449,10 @@ const NoObjects = props =>
 })
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
+  const nItemsPerPage = (_, props) => {
+    const nItems = +props.location.query.n
+    return Number.isNaN(nItems) ? DEFAULT_ITEMS_PER_PAGE : nItems
+  }
 
   return {
     areObjectsFetched,
@@ -466,6 +471,7 @@ const NoObjects = props =>
           container: containers[item.$container || item.$pool],
         }))
     ),
+    nItemsPerPage,
     type,
     user: getUser,
   }
@@ -516,6 +522,18 @@ export default class Home extends Component {
   _getNumberOfSelectedItems = createCounter(() => this.state.selectedItems, [
     identity,
   ])
+
+  _getItemsPerPage() {
+    return this.props.nItemsPerPage
+  }
+
+  _setItemsPerPage(nItems) {
+    const { pathname, query } = this.props.location
+    this.context.router.push({
+      pathname,
+      query: { ...query, n: nItems },
+    })
+  }
 
   _getPage() {
     const {
@@ -683,7 +701,7 @@ export default class Home extends Component {
   _getVisibleItems = createPager(
     this._getFilteredItems,
     () => this._getPage(),
-    ITEMS_PER_PAGE
+    () => this._getItemsPerPage()
   )
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
@@ -979,7 +997,7 @@ export default class Home extends Component {
                   })}
             </span>
           </Col>
-          <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
+          <Col mediumSize={6} className='text-xs-right hidden-sm-down'>
             {this._getNumberOfSelectedItems() ? (
               <div>
                 {mainActions && (
@@ -1135,10 +1153,24 @@ export default class Home extends Component {
               </div>
             )}
           </Col>
-          <Col smallSize={1} mediumSize={1} className='text-xs-right'>
+          <Col mediumSize={3} className='text-xs-right'>
             <Button onClick={this._expandAll}>
               <Icon icon='nav' />
-            </Button>
+            </Button>{' '}
+            <DropdownButton
+              bsStyle='info'
+              id='itemsPerPage'
+              title={this._getItemsPerPage()}
+            >
+              {ITEMS_PER_PAGE.map(nItemsPerPage => (
+                <MenuItem
+                  key={nItemsPerPage}
+                  onClick={() => this._setItemsPerPage(nItemsPerPage)}
+                >
+                  {nItemsPerPage}
+                </MenuItem>
+              ))}
+            </DropdownButton>
           </Col>
         </Row>
       </Container>
@@ -1223,13 +1255,13 @@ export default class Home extends Component {
               ))
             )}
           </div>
-          {filteredItems.length > ITEMS_PER_PAGE && (
+          {filteredItems.length > this._getItemsPerPage() && (
             <Row>
               <div style={{ display: 'flex', width: '100%' }}>
                 <div style={{ margin: 'auto' }}>
                   <Pagination
                     onChange={this._onPageSelection}
-                    pages={ceil(filteredItems.length / ITEMS_PER_PAGE)}
+                    pages={ceil(filteredItems.length / this._getItemsPerPage())}
                     value={this._getPage()}
                   />
                 </div>
