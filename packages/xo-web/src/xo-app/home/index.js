@@ -5,6 +5,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import CenterPanel from 'center-panel'
 import classNames from 'classnames'
+import cookies from 'cookies-js'
 import Component from 'base-component'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -450,7 +451,11 @@ const NoObjects = props =>
 @connectStore(() => {
   const type = (_, props) => props.location.query.t || DEFAULT_TYPE
   const nItemsPerPage = (_, props) => {
-    const nItems = +props.location.query.n
+    let nItems
+    if ((nItems = cookies.get('nItemsPerPage')) !== undefined) {
+      return nItems
+    }
+    nItems = +props.location.query.n
     return Number.isNaN(nItems) ? DEFAULT_ITEMS_PER_PAGE : nItems
   }
 
@@ -533,6 +538,7 @@ export default class Home extends Component {
       pathname,
       query: { ...query, n: nItems },
     })
+    cookies.set('nItemsPerPage', nItems)
   }
 
   _getPage() {
